@@ -1,0 +1,257 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "To view the full notebook content please use [nbviewer](https://nbviewer.jupyter.org) or set up a notebook server locally. For more information, see this [Gihub doc](https://docs.github.com/en/github/managing-files-in-a-repository/working-with-jupyter-notebook-files-on-github) or [Jupyter documentation](https://jupyter.readthedocs.io/en/latest/index.html)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 71,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2021-01-15T18:13:38-05:00",
+     "start_time": "2021-01-15T23:13:38.165Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "Outputtex[expressions_]:=expressions/.{P0->Subscript[P, 0],K0->Subscript[K, 0],V1->Subscript[V, 1],V2->Subscript[V, 2]}//TeXForm"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 54,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2021-01-15T18:10:58-05:00",
+     "start_time": "2021-01-15T23:10:58.519Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "$Assumptions = \n",
+    "  Join[{aa > 0, \\[Beta] > 0, \\[Kappa] > 0, \\[Epsilon] > 0, lp > 0, \n",
+    "    p0 > 0, \\[Mu]0 > 0, \\[Theta]0 > 0, \\[Mu] > 0, \\[Mu]1 > \n",
+    "     0, \\[Theta]x[x_] > 0, \\[Mu]2 > 0, \\[Theta]y[x_] > 0, px[x_] > 0, \n",
+    "    py[x_] > 0, s1 \\[Element] Integers, s1 < 3, s1 > 0, \n",
+    "    s2 \\[Element] Integers, s2 < 3, \n",
+    "    s2 > 0, \\[Epsilon]1 > 0, \\[Mu] > 0, \\[Alpha] > 0, lo > 0, \n",
+    "    u[i_][t] > 0, P0[t] > 0, K0[t] \\[Element] Reals, \n",
+    "    P0'[t] \\[Element] Reals, \n",
+    "    K0'[t] \\[Element] Reals, \\[CapitalLambda] > 0, \\[Beta] > 0, \n",
+    "    kx > 0, -3 K0[t]^2 + \\[CapitalLambda] P0[t] < 0, \n",
+    "    t > 0, \\[CapitalLambda] > 0}, \n",
+    "   Table[u[i][t] \\[Element] Reals, {i, 1, 18}], \n",
+    "   Table[u[i]'[t] \\[Element] Reals, {i, 1, 18}]];"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Deal with Equation of Motion"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Load the equation of motion in terms of Fourier modes $\\vec{k} = (k_x,0,0) $. The data is given as 20 equations in the form\n",
+    "\\[\n",
+    "F_0 + \\epsilon_1 F1\n",
+    "\\]\n",
+    "where $F_0$ are $0$-th order equation of motion and $F_1$ are first order."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2021-01-15T17:39:21-05:00",
+     "start_time": "2021-01-15T22:39:21.786Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div><pre style=\"&#102;&#111;&#110;&#116;&#45;&#102;&#97;&#109;&#105;&#108;&#121;&#58;&#32;&#34;&#67;&#111;&#117;&#114;&#105;&#101;&#114;&#32;&#78;&#101;&#119;&#34;&#44;&#67;&#111;&#117;&#114;&#105;&#101;&#114;&#44;&#109;&#111;&#110;&#111;&#115;&#112;&#97;&#99;&#101;&#59;\">&#47;&#100;&#97;&#116;&#97;&#47;&#108;&#104;&#103;&#47;&#67;&#111;&#115;&#109;&#111;&#95;&#115;&#99;&#97;&#108;&#97;&#114;</pre></div>"
+      ],
+      "text/plain": [
+       "/data/lhg/Cosmo_scalar"
+      ]
+     },
+     "execution_count": 1,
+     "metadata": {
+      "text/html": [],
+      "text/plain": []
+     },
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "SetDirectory[\"~/data/Cosmo_scalar\"]"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 21,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2021-01-15T17:45:20-05:00",
+     "start_time": "2021-01-15T22:45:18.674Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "Feom=Import[\"Feom.zip\", \"Feom.wl\"]/.\\[Lambda]\\[Phi]1->1;"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "The $0$-th order equation of motion are then given by set $\\epsilon_1 \\to 0$. The continuum limit of the equation of motion is given by the limit where $\\mu \\to 0$, which gives the following equations"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 72,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2021-01-15T18:13:43-05:00",
+     "start_time": "2021-01-15T23:13:42.922Z"
+    }
+   },
+   "outputs": [
+    {
+     "data": {
+      "text/html": [
+       "<div>&#36;&#36;&#92;&#108;&#101;&#102;&#116;&#92;&#123;&#56;&#32;&#80;&#95;&#48;&#40;&#116;&#41;&#123;&#125;&#94;&#123;&#53;&#47;&#50;&#125;&#32;&#75;&#95;&#48;&#39;&#40;&#116;&#41;&#43;&#52;&#32;&#75;&#95;&#48;&#40;&#116;&#41;&#123;&#125;&#94;&#50;&#32;&#80;&#95;&#48;&#40;&#116;&#41;&#123;&#125;&#94;&#50;&#43;&#92;&#107;&#97;&#112;&#112;&#97;&#32;&#32;&#92;&#108;&#97;&#109;&#98;&#100;&#97;&#32;&#92;&#112;&#104;&#105;&#32;&#32;&#92;&#80;&#105;&#32;&#40;&#116;&#41;&#94;&#50;&#61;&#52;&#32;&#92;&#76;&#97;&#109;&#98;&#100;&#97;&#32;&#32;&#80;&#95;&#48;&#40;&#116;&#41;&#123;&#125;&#94;&#51;&#43;&#50;&#32;&#92;&#107;&#97;&#112;&#112;&#97;&#32;&#32;&#92;&#108;&#97;&#109;&#98;&#100;&#97;&#32;&#92;&#112;&#104;&#105;&#32;&#32;&#80;&#95;&#48;&#40;&#116;&#41;&#123;&#125;&#94;&#51;&#32;&#86;&#95;&#49;&#40;&#92;&#80;&#104;&#105;&#32;&#40;&#116;&#41;&#41;&#43;&#50;&#32;&#92;&#107;&#97;&#112;&#112;&#97;&#32;&#32;&#92;&#108;&#97;&#109;&#98;&#100;&#97;&#32;&#92;&#112;&#104;&#105;&#32;&#32;&#80;&#95;&#48;&#40;&#116;&#41;&#123;&#125;&#94;&#51;&#32;&#86;&#95;&#50;&#40;&#92;&#80;&#104;&#105;&#32;&#40;&#116;&#41;&#41;&#44;&#50;&#32;&#75;&#95;&#48;&#40;&#116;&#41;&#32;&#92;&#115;&#113;&#114;&#116;&#123;&#80;&#95;&#48;&#40;&#116;&#41;&#125;&#61;&#80;&#95;&#48;&#39;&#40;&#116;&#41;&#44;&#92;&#108;&#97;&#109;&#98;&#100;&#97;&#32;&#92;&#112;&#104;&#105;&#32;&#32;&#92;&#80;&#105;&#32;&#40;&#116;&#41;&#61;&#80;&#95;&#48;&#40;&#116;&#41;&#123;&#125;&#94;&#123;&#51;&#47;&#50;&#125;&#32;&#92;&#80;&#104;&#105;&#32;&#39;&#40;&#116;&#41;&#44;&#92;&#108;&#97;&#109;&#98;&#100;&#97;&#32;&#92;&#112;&#104;&#105;&#32;&#32;&#80;&#95;&#48;&#40;&#116;&#41;&#123;&#125;&#94;&#123;&#51;&#47;&#50;&#125;&#32;&#86;&#95;&#49;&#39;&#40;&#92;&#80;&#104;&#105;&#32;&#40;&#116;&#41;&#41;&#43;&#92;&#108;&#97;&#109;&#98;&#100;&#97;&#32;&#92;&#112;&#104;&#105;&#32;&#32;&#80;&#95;&#48;&#40;&#116;&#41;&#123;&#125;&#94;&#123;&#51;&#47;&#50;&#125;&#32;&#86;&#95;&#50;&#39;&#40;&#92;&#80;&#104;&#105;&#32;&#40;&#116;&#41;&#41;&#43;&#92;&#80;&#105;&#32;&#39;&#40;&#116;&#41;&#61;&#48;&#92;&#114;&#105;&#103;&#104;&#116;&#92;&#125;&#36;&#36;</div>"
+      ],
+      "text/plain": [
+       "\\left\\{8 P_0(t){}^{5/2} K_0'(t)+4 K_0(t){}^2 P_0(t){}^2+\\kappa  \\lambda \\phi  \\Pi\\\n",
+       " \n",
+       ">   (t)^2=4 \\Lambda  P_0(t){}^3+2 \\kappa  \\lambda \\phi  P_0(t){}^3 V_1(\\Phi (t))+2\\\n",
+       " \n",
+       ">   \\kappa  \\lambda \\phi  P_0(t){}^3 V_2(\\Phi (t)),2 K_0(t)\\\n",
+       " \n",
+       ">   \\sqrt{P_0(t)}=P_0'(t),\\lambda \\phi  \\Pi (t)=P_0(t){}^{3/2} \\Phi '(t),\\lambda \\phi \\\n",
+       " \n",
+       ">   P_0(t){}^{3/2} V_1'(\\Phi (t))+\\lambda \\phi  P_0(t){}^{3/2} V_2'(\\Phi (t))+\\Pi\\\n",
+       " \n",
+       ">   '(t)=0\\right\\}"
+      ]
+     },
+     "execution_count": 74,
+     "metadata": {
+      "text/html": [],
+      "text/plain": []
+     },
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "Feom0=Thread[Flatten[Feom/. \\[Epsilon]1 -> 0] == 0] // Simplify;\n",
+    "Feom0con=DeleteCases[DeleteDuplicates[Series[Feom0, {\\[Mu], 0, 2}] // Normal // Simplify],True];\n",
+    "Feom0con/. lo -> 1 // FullSimplify // Expand//Outputtex"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "We would like to rewrite the EoMs as the following form\n",
+    "\n",
+    "\\[\n",
+    " U^{ij}V_{j} + \\dot{V}^{i} = 0\n",
+    "\\]\n",
+    "\n",
+    "Thus here we will derive $U$ as a 20-by-20 matrix."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 79,
+   "metadata": {
+    "ExecuteTime": {
+     "end_time": "2021-01-15T18:16:38-05:00",
+     "start_time": "2021-01-15T23:16:34.104Z"
+    }
+   },
+   "outputs": [],
+   "source": [
+    "Mdxy = Table[D[Feom[[i]],dtva[j]] // Simplify, {i, 1, 20}, {j, 1, 20}];\n",
+    "IMd = Inverse[Mdxy] // Simplify;\n",
+    "Mxy = Table[D[Feom[[i]],va[j] ]// Refine, {i, 1, 20}, {j, 1, 20}];\n",
+    "Um = IMd.Mxy;"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Continuum limit"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Wolfram Language 12",
+   "language": "Wolfram Language",
+   "name": "wolframlanguage12"
+  },
+  "language_info": {
+   "codemirror_mode": "mathematica",
+   "file_extension": ".m",
+   "mimetype": "application/vnd.wolfram.m",
+   "name": "Wolfram Language",
+   "pygments_lexer": "mathematica",
+   "version": "12.0"
+  },
+  "latex_envs": {
+   "LaTeX_envs_menu_present": true,
+   "autoclose": true,
+   "autocomplete": false,
+   "bibliofile": "biblio.bib",
+   "cite_by": "apalike",
+   "current_citInitial": 1,
+   "eqLabelWithNumbers": true,
+   "eqNumInitial": 1,
+   "hotkeys": {
+    "equation": "Ctrl-E",
+    "itemize": "Ctrl-I"
+   },
+   "labels_anchors": false,
+   "latex_user_defs": false,
+   "report_style_numbering": true,
+   "user_envs_cfg": false
+  },
+  "toc": {
+   "base_numbering": 1,
+   "nav_menu": {},
+   "number_sections": true,
+   "sideBar": true,
+   "skip_h1_title": false,
+   "title_cell": "Table of Contents",
+   "title_sidebar": "Contents",
+   "toc_cell": false,
+   "toc_position": {},
+   "toc_section_display": true,
+   "toc_window_display": false
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
